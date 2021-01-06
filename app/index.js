@@ -1,18 +1,14 @@
-const client = require('prom-client');
 const express = require('express');
-
-const metricExporter = require('./metrics');
+const cash = require('./cash');
+const metrics = require('./metrics');
 
 const app = express();
-
-// Initialize metrics
-const registry = new client.Registry();
-metricExporter(registry);
+cash.run();
 
 // Report Prometheus metrics on /metrics
 app.get('/metrics', async (req, res, next) => {
-	res.set('Content-Type', registry.contentType);
-	res.end(await registry.metrics());
+	res.set('Content-Type', metrics.registry.contentType);
+	res.end(await metrics.registry.metrics());
 	next();
 });
 
