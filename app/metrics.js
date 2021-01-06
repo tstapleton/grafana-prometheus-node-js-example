@@ -14,7 +14,7 @@ module.exports = (registry) => {
 	const enrollments = [];
 	let day = 0;
 
-	const gauge = new client.Gauge({
+	const currentEnrollmentsCountGauge = new client.Gauge({
 		name: 'cash_current_enrollments_count',
 		help: 'Count of enrollments per state right now',
 		registers: [registry],
@@ -25,7 +25,7 @@ module.exports = (registry) => {
 		],
 	});
 
-	const histogram = new client.Histogram({
+	const timeSpentPerEnrollmentStateHistogram = new client.Histogram({
 		name: 'cash_time_spent_per_enrollment_state_in_days',
 		help: 'Number of days spent in an enrollment state',
 		registers: [registry],
@@ -36,6 +36,17 @@ module.exports = (registry) => {
 			'cash_program',
 		],
 	});
+
+	const timeToCompleteEnrollmentGauge = new client.Gauge({
+		name: 'cash_time_to_complete_enrollment_in_days',
+		help: 'Number of days to complete enrollment from draft',
+		registers: [registry],
+		labelNames: [
+			'cash_enrollment_state',
+			'cash_product',
+			'cash_program',
+		]
+	})
 
 	const runCashProgram = () => {
 		console.log('Another day at the office...');
@@ -56,12 +67,20 @@ module.exports = (registry) => {
 					'cash_program': 'K+N UK Sellers',
 				};
 				const value = day - enrollment.modified;
-				histogram.observe(labels, value);
+				timeSpentPerEnrollmentStateHistogram.observe(labels, value);
 
 				const index = stateOrder.findIndex(state => enrollment.state === state);
 				enrollment.state = stateOrder[index + 1];
 				enrollment.modified = day;
+
 				console.log(`Marking enrollment ${enrollment.id} as ${enrollment.state} on ${enrollment.modified}`);
+
+				if (enrollment.state === states.completed) {
+					const value = day - enrollment.created;
+					timeToCompleteEnrollmentGauge.set(value);
+					console.log(`Enrollment ${enrollment.id} took ${value} days to complete`);
+				}
+
 				return;
 			}
 		})
@@ -69,9 +88,9 @@ module.exports = (registry) => {
 		Array.from(Array(newEnrollmentsToCreate), (v, i) => i).map(() => {
 			const id = enrollments.length + 1;
 			const state = states.draft;
-			const modified = day;
-			enrollments.push({ id, state, modified });
-			console.log(`Creating enrollment ${id} as ${state} on ${modified}`);
+			const created = day;
+			enrollments.push({ id, state, created, modified: created });
+			console.log(`Creating enrollment ${id} as ${state} on ${created}`);
 		})
 
 		day = day + 1;
@@ -87,7 +106,7 @@ module.exports = (registry) => {
 				'cash_product': 'BLACKSTAR RF',
 				'cash_program': 'K+N UK Sellers',
 			}
-			gauge.set(labels, count);
+			currentEnrollmentsCountGauge.set(labels, count);
 		})
 	}
 
