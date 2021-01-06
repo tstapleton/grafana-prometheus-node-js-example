@@ -4,7 +4,8 @@ scrape_configs:
 
     static_configs:
       - targets: [
-        'app:9200',
+        # 'app:9200',
+        'host.docker.internal:9200',
       ]
         labels:
           service: 'app-exporter'

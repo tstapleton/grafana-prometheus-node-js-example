@@ -11,12 +11,10 @@ metricExporter(registry);
 
 // Report Prometheus metrics on /metrics
 app.get('/metrics', async (req, res, next) => {
-  res.set('Content-Type', registry.contentType);
-  res.end(registry.metrics());
-  
-  next();
+	res.set('Content-Type', registry.contentType);
+	res.end(await registry.metrics());
+	next();
 });
-
 
 // Run the server
 app.listen(9200, '0.0.0.0', () => console.log('App started!'));
