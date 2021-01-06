@@ -1,13 +1,17 @@
-# Visualizing metrics from the Node JS application with Prometheus and Grafana
+# Rollboard
 
 ## Run
 
-```bash
-docker-compose up -d
+```console
+me@host:~/code$ git clone git@github.com:tstapleton/grafana-prometheus-node-js-example.git && cd grafana-prometheus-node-js-example
+me@host:~/code/grafana-prometheus-node-js-example$ docker-compose up -d grafana prometheus
+me@host:~/code/grafana-prometheus-node-js-example$ cd app
+me@host:~/code/grafana-prometheus-node-js-example$ npm ci
+me@host:~/code/grafana-prometheus-node-js-example$ npm run dev
 ```
 
-Then open the http://localhost:3000, login (admin:illchangeitanyway) and check out the results!
+Open http://localhost:3000 and login to Grafana using the credentials `admin:illchangeitanyway`. View raw metrics at http://localhost:9200/metrics. Console logs for the Node app shows what's happening in the program day by day.
 
-Full tutorial you can find in my blog - [https://sergeypotekhin.com/](http://sergeypotekhin.com/visualizing-data-from-the-node-js-app/?utm_source=github&utm_medium=readme&utm_campaign=repos).
+## Credit
 
-See ya!
+Full tutorial from the blog post: [https://sergeypotekhin.com/](http://sergeypotekhin.com/visualizing-data-from-the-node-js-app/?utm_source=github&utm_medium=readme&utm_campaign=repos).
