@@ -10,6 +10,9 @@ const states = {
 }
 const stateOrder = [states.draft, states.invited, states.noaOps, states.noaBuyer, states.completed];
 
+const product = 'BLACKSTAR RF';
+const programs = ['K+N UK', 'NHS UK'];
+
 const enrollments = [];
 let day = 0;
 
@@ -28,8 +31,8 @@ const runCashProgram = () => {
 		if (Math.random() <= 0.20) {
 			const labels = {
 				'cash_enrollment_state': enrollment.state,
-				'cash_product': 'BLACKSTAR RF',
-				'cash_program': 'K+N UK Sellers',
+				'cash_product': enrollment.product,
+				'cash_program': enrollment.program,
 			};
 			const value = day - enrollment.modified;
 			metrics.timeSpentPerEnrollmentStateHistogram.observe(labels, value);
@@ -42,7 +45,9 @@ const runCashProgram = () => {
 
 			if (enrollment.state === states.completed) {
 				const value = day - enrollment.created;
-				metrics.timeToCompleteEnrollmentGauge.set(value);
+				const { cash_product, cash_program } = labels;
+				const completionLabels = { cash_product, cash_program };
+				metrics.timeToCompleteEnrollmentGauge.set(completionLabels, value);
 				console.log(`Enrollment ${enrollment.id} took ${value} days to complete`);
 			}
 
@@ -54,7 +59,8 @@ const runCashProgram = () => {
 		const id = enrollments.length + 1;
 		const state = states.draft;
 		const created = day;
-		enrollments.push({ id, state, created, modified: created });
+		const program = programs[Math.round(Math.random())];
+		enrollments.push({ id, state, created, modified: created, product, program });
 		console.log(`Creating enrollment ${id} as ${state} on ${created}`);
 	})
 
@@ -62,14 +68,16 @@ const runCashProgram = () => {
 }
 
 const countEnrollments = () => {
-	Object.keys(states).map((state) => {
-		const count = enrollments.filter(enrollment => enrollment.state === states[state]).length;
-		const labels = {
-			'cash_enrollment_state': states[state],
-			'cash_product': 'BLACKSTAR RF',
-			'cash_program': 'K+N UK Sellers',
-		}
-		metrics.currentEnrollmentsCountGauge.set(labels, count);
+	programs.map((program) => {
+		Object.keys(states).map((state) => {
+			const count = enrollments.filter(enrollment => enrollment.state === states[state] && enrollment.program === program).length;
+			const labels = {
+				'cash_enrollment_state': states[state],
+				'cash_product': product,
+				'cash_program': program,
+			}
+			metrics.currentEnrollmentsCountGauge.set(labels, count);
+		})
 	})
 }
 

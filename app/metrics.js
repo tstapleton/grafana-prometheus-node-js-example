@@ -26,10 +26,9 @@ const timeSpentPerEnrollmentStateHistogram = new client.Histogram({
 
 const timeToCompleteEnrollmentGauge = new client.Gauge({
 	name: 'cash_time_to_complete_enrollment_in_days',
-	help: 'Number of days to complete enrollment from draft',
+	help: 'Number of days to complete enrollment from draft creation',
 	registers: [registry],
 	labelNames: [
-		'cash_enrollment_state',
 		'cash_product',
 		'cash_program',
 	]
